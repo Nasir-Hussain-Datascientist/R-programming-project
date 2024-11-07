@@ -1,0 +1,183 @@
+---
+title: "Traffic Accident Analysis in Addis Ababa"
+author: "Nasir Hussain"
+date: "2024-11-07"
+output: html_document
+---
+# Introduction
+
+In this report, we analyze traffic accident data collected from the Addis Ababa Sub-city police departments. The dataset spans from 2017 to 2020 and includes various features such as driver demographics, vehicle information, accident conditions, and accident severity. This analysis aims to uncover patterns and key factors influencing traffic accident severity in Addis Ababa.
+
+
+## Objective
+
+This project seeks to answer the following research questions:
+
+1. What are the primary causes of road traffic accidents in Addis Ababa?
+
+2. How do environmental and temporal factors (e.g., weather, time of day) influence accident severity?
+
+3. What patterns can we observe based on driver demographics and vehicle information?
+
+4. Is there a correlation between vehicle-related factors (e.g., type of vehicle, service year) and accident severity?
+
+5. Are there time-based trends in accident occurrence, such as peaks during certain times of the day or days of the week?
+
+6. How do different road features (e.g., road alignment, type of junction) affect accident frequency and severity?
+
+7. Is there a relationship between the number of vehicles involved in an accident and the severity of the outcome?
+
+8. How does pedestrian movement influence accident outcomes?
+
+9. Does the driving experience of the driver affect the likelihood of severe accidents?
+
+10. Can we predict accident severity based on the driver’s and vehicle’s features?
+
+
+
+# Data Wrangling and Cleaning
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r}
+
+
+# Load the dataset
+accidents <- read.csv("RTA Dataset.csv")
+
+# Inspect the dataset
+str(accidents)
+summary(accidents)
+
+```
+```{r}
+# Ensure the columns has correct data types
+
+# Convert columns with categorical data to factors
+accidents$Day_of_week <- factor(accidents$Day_of_week)
+accidents$Sex_of_driver <- factor(accidents$Sex_of_driver)
+accidents$Age_band_of_driver <- factor(accidents$Age_band_of_driver)
+accidents$Educational_level <- factor(accidents$Educational_level)
+accidents$Driving_experience <- factor(accidents$Driving_experience)
+accidents$Type_of_vehicle <- factor(accidents$Type_of_vehicle)
+accidents$Owner_of_vehicle <- factor(accidents$Owner_of_vehicle)
+accidents$Service_year_of_vehicle <- factor(accidents$Service_year_of_vehicle)
+accidents$Defect_of_vehicle <- factor(accidents$Defect_of_vehicle)
+accidents$Area_accident_occured <- factor(accidents$Area_accident_occured)
+accidents$Lanes_or_Medians <- factor(accidents$Lanes_or_Medians)
+accidents$Road_allignment <- factor(accidents$Road_allignment)
+accidents$Types_of_Junction <- factor(accidents$Types_of_Junction)
+accidents$Road_surface_type <- factor(accidents$Road_surface_type)
+accidents$Road_surface_conditions <- factor(accidents$Road_surface_conditions)
+accidents$Light_conditions <- factor(accidents$Light_conditions)
+accidents$Weather_conditions <- factor(accidents$Weather_conditions)
+accidents$Type_of_collision <- factor(accidents$Type_of_collision)
+accidents$Vehicle_movement <- factor(accidents$Vehicle_movement)
+accidents$Casualty_class <- factor(accidents$Casualty_class)
+accidents$Sex_of_casualty <- factor(accidents$Sex_of_casualty)
+accidents$Age_band_of_casualty <- factor(accidents$Age_band_of_casualty)
+accidents$Casualty_severity <- factor(accidents$Casualty_severity)
+accidents$Work_of_casuality <- factor(accidents$Work_of_casuality)
+accidents$Fitness_of_casuality <- factor(accidents$Fitness_of_casuality)
+accidents$Pedestrian_movement <- factor(accidents$Pedestrian_movement)
+accidents$Cause_of_accident <- factor(accidents$Cause_of_accident)
+accidents$Accident_severity <- factor(accidents$Accident_severity)
+
+# Convert Time to POSIXct (time format)
+accidents$Time <- as.POSIXct(accidents$Time, format="%H:%M:%S")
+
+
+```
+```{r}
+#handling missing values
+
+# Drop rows with missing values
+accidents_cleaned <- na.omit(accidents)
+
+# Inspect the cleaned dataset
+str(accidents_cleaned)
+summary(accidents_cleaned)
+
+
+```
+# 1. What factors contribute most to road traffic accidents in Addis Ababa?
+
+```{r}
+# Plot the distribution of accidents by driver age group
+ggplot(accidents_cleaned, aes(x = Age_band_of_driver)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(title = "Accidents by Age Band of Driver", 
+       x = "Age Band of Driver", y = "Count of Accidents")
+
+# Plot accidents by sex of the driver
+ggplot(accidents_cleaned, aes(x = Sex_of_driver)) +
+  geom_bar(fill = "orange", color = "black") +
+  labs(title = "Accidents by Sex of Driver", 
+       x = "Sex of Driver", y = "Count of Accidents")
+
+# Plot accidents by driving experience
+ggplot(accidents_cleaned, aes(x = Driving_experience)) +
+  geom_bar(fill = "purple", color = "black") +
+  labs(title = "Accidents by Driving Experience", 
+       x = "Driving Experience", y = "Count of Accidents")
+
+# Plot accidents by type of vehicle
+ggplot(accidents_cleaned, aes(x = Type_of_vehicle)) +
+  geom_bar(fill = "lightgreen", color = "black") +
+  labs(title = "Accidents by Type of Vehicle", 
+       x = "Type of Vehicle", y = "Count of Accidents")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels by 45 degrees
+
+
+```
+# 2. How do accidents vary by day of the week?
+
+```{r}
+# Plot accidents by day of the week
+ggplot(accidents_cleaned, aes(x = Day_of_week)) +
+  geom_bar(fill = "salmon", color = "black") +
+  labs(title = "Accidents by Day of the Week", x = "Day of the Week", y = "Count of Accidents")
+
+
+```
+# 3. Is there any significant relationship between the driver’s age and the severity of accidents?
+```{r}
+# Plot age band vs. accident severity
+ggplot(accidents_cleaned, aes(x = Age_band_of_driver, fill = Accident_severity)) +
+  geom_bar(position = "dodge", color = "black") +
+  labs(title = "Accident Severity by Age Band of Driver", 
+       x = "Age Band of Driver", y = "Count of Accidents")
+
+```
+# 4.Does the type of vehicle affect the number of casualties in accidents?
+
+```{r}
+# Plot type of vehicle vs. number of casualties
+ggplot(accidents_cleaned, aes(x = Type_of_vehicle, y = Number_of_casualties)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Casualties by Type of Vehicle", 
+       x = "Type of Vehicle", y = "Number of Casualties")
+
+```
+
+```{r message=FALSE, warning=FALSE}
+# 1. Accidents by Day of the Week
+day_of_week_counts <- table(accidents_cleaned$Day_of_week)  # Count the occurrences
+
+# Print the actual counts
+print(day_of_week_counts)
+
+# Plot the accidents by Day of the Week
+ggplot(accidents_cleaned, aes(x = Day_of_week)) +
+  geom_bar(fill = "salmon", color = "black") +
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5) +
+  labs(title = "Accidents by Day of the Week", x = "Day of the Week", y = "Count of Accidents")
+
+```
+
