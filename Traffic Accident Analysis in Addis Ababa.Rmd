@@ -1,37 +1,36 @@
 ---
 title: "Traffic Accident Analysis in Addis Ababa"
-author: "Nasir Hussain"
 date: "2024-11-07"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
-# Introduction
+# Background and Problem definitions
 
-In this report, we analyze traffic accident data collected from the Addis Ababa Sub-city police departments. The dataset spans from 2017 to 2020 and includes various features such as driver demographics, vehicle information, accident conditions, and accident severity. This analysis aims to uncover patterns and key factors influencing traffic accident severity in Addis Ababa.
+Traffic accidents are among the leading causes of injury and death globally. Most importantly, the study of causes and antecedents of these mishaps will go a long way in enhancing road safety, and hence decreasing the fatality rate. In this research, the Road Traffic Accident Dataset of Addis Ababa City is employed to analyze the correlation between antecedent conditions such as weather conditions, driver’s experience, and the Road Alignment and Traffic congestion, with the extent of accident severity.
 
+Specific inputs from the data set include details of over 12000 accidents that occurred between 2017 and 2020, and the circumstances when they occurred including time, location, type of vehicle and conditions at the time of the accident. Particularly, this work will be aimed at identifying specific characteristics of severe accident types because they have the highest impact on public health.
+
+The issue under focus in this study is the analysis of severe road traffic accidents to determine their main antecedents. Thus, working with this dataset, the aim is to identify potential patterns as to how different variables such as weather condition, drivers’ experience, road gradients and much more are linked to the severity of the accidents. The findings generated from the analysis may serve to enhance the creation of safer prevention strategies that may assist policymakers, traffic authorities, and the public to minimize the number of fatal accidents on the road.
 
 ## Objective
 
 This project seeks to answer the following research questions:
+1. What are the most common causes of road traffic accidents in Addis Ababa, and how frequently do they occur?
 
-1. What are the primary causes of road traffic accidents in Addis Ababa?
+2. How the Accidents are distributed among the male and female Drivers?
 
-2. How do environmental and temporal factors (e.g., weather, time of day) influence accident severity?
+3. How the Accidents are distributed among the Age Band of Drivers?
 
-3. What patterns can we observe based on driver demographics and vehicle information?
+4. What is the realtion between the experince of driver and the number of accidents?
 
-4. Is there a correlation between vehicle-related factors (e.g., type of vehicle, service year) and accident severity?
+5. What is the distribution of road accidents by the type of vehicle involved?
 
-5. Are there time-based trends in accident occurrence, such as peaks during certain times of the day or days of the week?
+6. Is there a correlation between road surface conditions and accident severity?
 
-6. How do different road features (e.g., road alignment, type of junction) affect accident frequency and severity?
+7. Are there any noticeable trends in accident severity by road alignment type (e.g., curved, flat terrain)?
 
-7. Is there a relationship between the number of vehicles involved in an accident and the severity of the outcome?
-
-8. How does pedestrian movement influence accident outcomes?
-
-9. Does the driving experience of the driver affect the likelihood of severe accidents?
-
-10. Can we predict accident severity based on the driver’s and vehicle’s features?
+8. What factors most predict severe accidents (e.g., weather, driving experience, road alignment)?
 
 
 
@@ -56,128 +55,269 @@ str(accidents)
 summary(accidents)
 
 ```
+The columns are being dropped because they either provide irrelevant information for analyzing the main factors of road traffic accidents or contain data that is not central to understanding accident causes, severity, or patterns. This simplification helps focus on the most impactful variables for the analysis.
+
+
 ```{r}
-# Ensure the columns has correct data types
+# Drop the specified columns
+cols_to_drop <- c("Time", "Educational_level", "Owner_of_vehicle", "Lanes_or_Medians", 
+                  "Types_of_Junction", "Casualty_class", "Sex_of_casualty", 
+                  "Age_band_of_casualty", "Casualty_severity", "Work_of_casuality", 
+                  "Fitness_of_casuality", "Pedestrian_movement")
 
-# Convert columns with categorical data to factors
-accidents$Day_of_week <- factor(accidents$Day_of_week)
-accidents$Sex_of_driver <- factor(accidents$Sex_of_driver)
-accidents$Age_band_of_driver <- factor(accidents$Age_band_of_driver)
-accidents$Educational_level <- factor(accidents$Educational_level)
-accidents$Driving_experience <- factor(accidents$Driving_experience)
-accidents$Type_of_vehicle <- factor(accidents$Type_of_vehicle)
-accidents$Owner_of_vehicle <- factor(accidents$Owner_of_vehicle)
-accidents$Service_year_of_vehicle <- factor(accidents$Service_year_of_vehicle)
-accidents$Defect_of_vehicle <- factor(accidents$Defect_of_vehicle)
-accidents$Area_accident_occured <- factor(accidents$Area_accident_occured)
-accidents$Lanes_or_Medians <- factor(accidents$Lanes_or_Medians)
-accidents$Road_allignment <- factor(accidents$Road_allignment)
-accidents$Types_of_Junction <- factor(accidents$Types_of_Junction)
-accidents$Road_surface_type <- factor(accidents$Road_surface_type)
-accidents$Road_surface_conditions <- factor(accidents$Road_surface_conditions)
-accidents$Light_conditions <- factor(accidents$Light_conditions)
-accidents$Weather_conditions <- factor(accidents$Weather_conditions)
-accidents$Type_of_collision <- factor(accidents$Type_of_collision)
-accidents$Vehicle_movement <- factor(accidents$Vehicle_movement)
-accidents$Casualty_class <- factor(accidents$Casualty_class)
-accidents$Sex_of_casualty <- factor(accidents$Sex_of_casualty)
-accidents$Age_band_of_casualty <- factor(accidents$Age_band_of_casualty)
-accidents$Casualty_severity <- factor(accidents$Casualty_severity)
-accidents$Work_of_casuality <- factor(accidents$Work_of_casuality)
-accidents$Fitness_of_casuality <- factor(accidents$Fitness_of_casuality)
-accidents$Pedestrian_movement <- factor(accidents$Pedestrian_movement)
-accidents$Cause_of_accident <- factor(accidents$Cause_of_accident)
-accidents$Accident_severity <- factor(accidents$Accident_severity)
+# Remove the columns from the dataset
+new_accidents <- accidents[, !(names(accidents) %in% cols_to_drop)]
 
-# Convert Time to POSIXct (time format)
-accidents$Time <- as.POSIXct(accidents$Time, format="%H:%M:%S")
-
-
+# Check the remaining columns
+remaining_columns <- colnames(new_accidents)
+print("Remaining Columns After Dropping:")
+print(remaining_columns)
 ```
+## Handling missing values
 ```{r}
-#handling missing values
-
 # Drop rows with missing values
-accidents_cleaned <- na.omit(accidents)
+accidents_clean <- na.omit(new_accidents)
 
-# Inspect the cleaned dataset
-str(accidents_cleaned)
-summary(accidents_cleaned)
-
+# Print the first few rows to check
+head(accidents_clean)
 
 ```
-# 1. What factors contribute most to road traffic accidents in Addis Ababa?
+## 1.What are the most common causes of road traffic accidents in Addis Ababa, and how frequently do they occur?
 
 ```{r}
-# Plot the distribution of accidents by driver age group
-ggplot(accidents_cleaned, aes(x = Age_band_of_driver)) +
-  geom_bar(fill = "skyblue", color = "black") +
-  labs(title = "Accidents by Age Band of Driver", 
-       x = "Age Band of Driver", y = "Count of Accidents")
+# Count the total number of accidents for each cause
+cause_accidents_count <- table(accidents_clean$Cause_of_accident)
 
-# Plot accidents by sex of the driver
-ggplot(accidents_cleaned, aes(x = Sex_of_driver)) +
-  geom_bar(fill = "orange", color = "black") +
-  labs(title = "Accidents by Sex of Driver", 
-       x = "Sex of Driver", y = "Count of Accidents")
+# Convert the table into a data frame for easier manipulation
+cause_accidents_df <- as.data.frame(cause_accidents_count)
+colnames(cause_accidents_df) <- c("Cause_of_accident", "Total_Accidents")
 
-# Plot accidents by driving experience
-ggplot(accidents_cleaned, aes(x = Driving_experience)) +
-  geom_bar(fill = "purple", color = "black") +
-  labs(title = "Accidents by Driving Experience", 
-       x = "Driving Experience", y = "Count of Accidents")
+# Display the result
+print(cause_accidents_df)
 
-# Plot accidents by type of vehicle
-ggplot(accidents_cleaned, aes(x = Type_of_vehicle)) +
-  geom_bar(fill = "lightgreen", color = "black") +
-  labs(title = "Accidents by Type of Vehicle", 
-       x = "Type of Vehicle", y = "Count of Accidents")+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels by 45 degrees
-
+# Visualize the count of accidents by cause
+library(ggplot2)
+ggplot(cause_accidents_df, aes(x = reorder(Cause_of_accident, -Total_Accidents), y = Total_Accidents)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Total Number of Accidents by Cause", 
+       x = "Cause of Accident", 
+       y = "Total Number of Accidents") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) # Rotate x labels for better readability
 
 ```
-# 2. How do accidents vary by day of the week?
+
+## Answer
+
+The most frequent causes of accidents in Addis Ababa are linked to behaviors like changing lanes improperly, not maintaining adequate distance, and careless driving. Among these, No Distancing is the most prevalent, occurring in over 2,200 incidents. Other common causes include lane changes, careless driving, and lack of priority to vehicles and pedestrians.
+
+
+
+## 2. How the Accidents are distributed among the male and female Drivers?
 
 ```{r}
-# Plot accidents by day of the week
-ggplot(accidents_cleaned, aes(x = Day_of_week)) +
-  geom_bar(fill = "salmon", color = "black") +
-  labs(title = "Accidents by Day of the Week", x = "Day of the Week", y = "Count of Accidents")
-
+sex_counts <- table(accidents_clean$Sex_of_driver)
+ggplot(as.data.frame(sex_counts), aes(x = "", y = Freq, fill = Var1)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  labs(title = "Accidents by Sex of Driver") +
+  theme_void()
+print(sex_counts)
 
 ```
-# 3. Is there any significant relationship between the driver’s age and the severity of accidents?
+
+## Answer
+
+The majority of road traffic accidents in Addis Ababa involve male drivers, accounting for a significantly higher number of accidents compared to female drivers. The unknown category also represents a small portion of the total accidents
+
+
+## 3.How the Accidents are distributed among the Age Band of Drivers?
+
+
 ```{r}
-# Plot age band vs. accident severity
-ggplot(accidents_cleaned, aes(x = Age_band_of_driver, fill = Accident_severity)) +
-  geom_bar(position = "dodge", color = "black") +
-  labs(title = "Accident Severity by Age Band of Driver", 
-       x = "Age Band of Driver", y = "Count of Accidents")
+ggplot(accidents_clean, aes(x = Age_band_of_driver)) +
+  geom_bar(fill = "orange") +
+  labs(title = "Total Number of Accidents by Age Band of Driver", x = "Age Band of Driver", y = "Total Number of Accidents") +
+  theme_minimal()
+
+# Print total accidents by age band
+table(accidents_clean$Age_band_of_driver)
+
+
+
 
 ```
-# 4.Does the type of vehicle affect the number of casualties in accidents?
+
+## Answer
+
+The data shows a higher number of accidents among younger drivers (18-30 years) and those in the 31-50 years group. This suggests that driving experience (or lack of it) is a significant factor in accident occurrence, with younger drivers facing higher risks
+
+
+
+## 4. What is the realtion between the experince of driver and the number of accidents?
+
 
 ```{r}
-# Plot type of vehicle vs. number of casualties
-ggplot(accidents_cleaned, aes(x = Type_of_vehicle, y = Number_of_casualties)) +
-  geom_boxplot(fill = "lightgreen", color = "black") +
-  labs(title = "Casualties by Type of Vehicle", 
-       x = "Type of Vehicle", y = "Number of Casualties")
+ggplot(accidents_clean, aes(x = Driving_experience)) +
+  geom_bar(fill = "lightgreen") +
+  labs(title = "Total Number of Accidents by Driving Experience", x = "Driving Experience", y = "Total Number of Accidents") +
+  theme_minimal()
+
+# Print total accidents by driving experience
+table(accidents_clean$Driving_experience)
+
+
+
 
 ```
 
-```{r message=FALSE, warning=FALSE}
-# 1. Accidents by Day of the Week
-day_of_week_counts <- table(accidents_cleaned$Day_of_week)  # Count the occurrences
+## Answer
+The data shows that both inexperienced drivers (below 1 year) and very experienced drivers (above 10 years) are involved in the highest number of accidents. This suggests that driving experience is a key factor in accident occurrence, with both ends of the spectrum (new and highly experienced drivers) potentially facing higher risks. The middle range (2-5 years and 5-10 years) shows a moderate number of accidents, suggesting these drivers are somewhat more experienced and likely make fewer errors on the road.
 
-# Print the actual counts
-print(day_of_week_counts)
 
-# Plot the accidents by Day of the Week
-ggplot(accidents_cleaned, aes(x = Day_of_week)) +
-  geom_bar(fill = "salmon", color = "black") +
-  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5) +
-  labs(title = "Accidents by Day of the Week", x = "Day of the Week", y = "Count of Accidents")
+
+
+
+
+## 5. What is the distribution of road accidents by the type of vehicle involved?
+
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+
+# Group by 'Type_of_vehicle' and count the number of accidents
+vehicle_accidents <- accidents_clean %>%
+  group_by(Type_of_vehicle) %>%
+  summarise(accidents_count = n())
+
+# View the result
+print(vehicle_accidents)
+
+# Create a bar plot to visualize the distribution
+ggplot(vehicle_accidents, aes(x = Type_of_vehicle, y = accidents_count, fill = Type_of_vehicle)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Distribution of Road Accidents by Vehicle Type",
+       x = "Type of Vehicle", y = "Number of Accidents") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
+
+## Answer
+Automobiles and Lorries (especially larger ones) dominate the number of accidents in Addis Ababa.
+Public transport vehicles also contribute notably to accident statistics.
+Motorcycles and smaller vehicles like Bajajs have a smaller presence but still contribute to the overall accident count.
+
+
+
+## 6.Is there a correlation between road surface conditions and accident severity?
+
+```{r}
+# Create a contingency table for Road Surface Conditions vs Accident Severity
+contingency_table <- table(accidents_clean$Road_surface_conditions, accidents_clean$Accident_severity)
+
+# View the contingency table
+print(contingency_table)
+
+# Perform a Chi-squared test
+chi_square_test <- chisq.test(contingency_table)
+
+# Output the Chi-squared test result
+print(chi_square_test)
+
+# Visualization - Bar plot
+ggplot(accidents_clean, aes(x = Road_surface_conditions, fill = Accident_severity)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  labs(title = "Correlation Between Road Surface Conditions and Accident Severity",
+       x = "Road Surface Conditions", y = "Proportion of Accident Severity") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Answer
+The Graph above shows that accidents on Roads that are Dry or Wer/damp casues serious injury as comapred to those of others.
+
+
+## 7.Are there any noticeable trends in accident severity by road alignment type (e.g., curved, flat terrain)?
+
+```{r}
+# Create a contingency table for Road Alignment vs Accident Severity
+contingency_table_alignment <- table(accidents_clean$Road_allignment, accidents_clean$Accident_severity)
+
+# View the contingency table
+print(contingency_table_alignment)
+
+# Perform a Chi-squared test
+chi_square_test_alignment <- chisq.test(contingency_table_alignment)
+
+# Output the Chi-squared test result
+print(chi_square_test_alignment)
+
+# Visualization - Bar plot
+ggplot(accidents_clean, aes(x = Road_allignment, fill = Accident_severity)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  labs(title = "Accident Severity by Road Alignment Type",
+       x = "Road Alignment Type", y = "Proportion of Accident Severity") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Answer
+As shown in the graph "Steep grade upward with mountainous terrain" have most of serious injuries in accidents. followed by "Tangent road wih rolling terrain" and "sharp reverse curve".
+
+## 8.What factors most predict severe accidents (e.g., weather, driving experience, road alignment)?
+
+```{r}
+# Convert Accident Severity into a binary outcome (Severe vs. Non-severe)
+accidents_clean$Severity_binary <- ifelse(accidents_clean$Accident_severity %in% c("Serious Injury", "Fatal"), 1, 0)
+
+# Build the logistic regression model
+log_reg_model <- glm(Severity_binary ~ Weather_conditions + Driving_experience + Road_allignment + 
+                     Type_of_vehicle + Defect_of_vehicle + Area_accident_occured, 
+                     data = accidents_clean, 
+                     family = binomial)
+
+# Summary of the model to interpret the coefficients
+summary(log_reg_model)
+
+# Model diagnostics - Check the significance of predictors
+# Look at the coefficients, p-values, and odds ratios
+exp(cbind(OR = coef(log_reg_model), confint(log_reg_model)))
+
+# Model Evaluation: Calculate predictions and performance metrics
+predictions <- predict(log_reg_model, type = "response")
+predicted_classes <- ifelse(predictions > 0.5, 1, 0)
+
+# Confusion matrix and accuracy
+conf_matrix <- table(Predicted = predicted_classes, Actual = accidents_clean$Severity_binary)
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+print(paste("Accuracy: ", accuracy))
+
+```
+
+## Answer
+The most predictive factors for severe accidents in this dataset are:
+
+1. **Weather Conditions**: Severe accidents are more likely in  "Windy," and "Raining" weather conditions.
+2. **Driving Experience**: Drivers with less than 1 year of experience or no license have more severe accident rates.
+3. **Road Alignment**: Slopes and more specifically mountainous areas extend risks of fatal accidents significantly..
+4. **Vehicle Type**:  Lorries, pick-up vehicles and special vehicles run higher risk when it comes to serious accidents.
+5. **Vehicle Defects**:  Some of these vehicle defects can be attributed to a raise slight probability of occurrence of severe accidents. 
+The given points leave a possibility of indicating that the probability of heightened accident severity strongly depends on environmental conditions, drivers’ experience, and car types.
+
+# Final Words
+
+Drawing on this road traffic analysis of accidents in Addis Ababa, there are several causes that stand out as determinative of the level of injury occurrence. We noted that weather conditions like ‘Normal’, ‘Windy’, ‘Raining’ have close correlation with severe accidents. Non-experienced/driver with less than one year of license, were more prone to serious accident implying the effect of the driver’s experience. Further, research pointed out that such factors as steep road grades and mountains were some of the factors that boosted accident severity.
+
+The type of vehicle also had it part because lorry, pick-up vehicles, and special types of vehicles from among the vehicles involved contributed to severe accidents. Asehicle problems that compound the risk of fatal injuries, it is important to go for vehicle check-ups.
+
+The study brings out the intensity that environmental factors, the experience of the driver, and the condition of the cars at the time of an accident plays. Preventing very high risk crashes may require policy measures that enhance driver training including first time drivers and vehicle safety inspection. Higher levels of investment in infrastructure could lead to reduction of accidents especially on areas characterized by steep gauges and mountainous regions.
+
+This paper therefore highlights the significance of tailor made safety interventions and may aide in guiding the formulation of road safety polices and engineering designs. More precise data regarding weather conditions, car safety mechanisms, and effects of particular roads’ layout on the severity of an accident can be studied in future researches.
+
+In conclusion it is argued that improvement of the above mentioned factors is crucial in the endeavor of promoting efforts and measures on road safety improvement as well as minimizing the occurrence of serious road accidents in Addis Ababa.
+
 
