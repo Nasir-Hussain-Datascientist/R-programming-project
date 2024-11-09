@@ -1,5 +1,6 @@
 ---
 title: "Traffic Accident Analysis in Addis Ababa - Case Study"
+author: "Khalifa Alghafri"
 date: "2024-11-07"
 output:
   pdf_document: default
