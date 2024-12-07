@@ -75,7 +75,7 @@ columns_to_drop <- c("Time", "Educational_level", "Owner_of_vehicle", "Lanes_or_
                   "Age_band_of_casualty", "Casualty_severity", "Work_of_casuality", 
                   "Fitness_of_casuality", "Pedestrian_movement")
 
-# Remove te columns from the dataset
+# Remove the columns from the dataset
 new_accidents_data <- accidents_data[, !(names(accidents_data) %in% columns_to_drop)]
 
 # Check the remaining columns
