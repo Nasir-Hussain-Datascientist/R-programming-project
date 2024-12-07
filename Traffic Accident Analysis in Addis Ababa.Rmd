@@ -98,6 +98,7 @@ accidents_clean_data <- na.omit(new_accidents_data)
 ## The main causes of RTAs in Addis Ababa The frequency of RTAs in Addis Ababa
 
 ```{r}
+# Count  total number of accidents for each cause
 cause_accidents_count <- table(accidents_clean_data$Cause_of_accident)
 
 # Convert the table into a data frame for easier manipulation
